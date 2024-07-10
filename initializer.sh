@@ -3,7 +3,7 @@
 
 # Prompt for user inputs
 read -p "Enter the name of the user to create: " USERNAME
-read -sp "Enter the password for the user: " PASSWORD
+read -s -p "Enter the password for the user: " PASSWORD
 echo
 read -p "Enter the Node version to install (e.g., 20.11.1): " NODE_VERSION
 read -p "Enter the folder name inside /var/www: " WWW_FOLDER
@@ -12,7 +12,7 @@ read -p "Enter the GitHub Actions runner token: " RUNNER_TOKEN
 read -p "Enter the GitHub Actions runner version (e.g., 2.308.0): " RUNNER_VERSION
 read -p "Enter the GitHub Actions runner name: " RUNNER_NAME
 read -p "Enter the GitHub Actions runner labels (comma-separated): " RUNNER_LABELS
-read -sp "Enter the sudo password for the new user: " SUDO_PASSWORD
+read -s -p "Enter the sudo password for the new user: " SUDO_PASSWORD
 echo
 
 # Update package lists
