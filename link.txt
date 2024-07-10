@@ -1,0 +1,1 @@
+https://raw.githubusercontent.com/nishanprime/Setup-Ubuntu-For-Deployment/main/initializer.sh
