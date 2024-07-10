@@ -1,5 +1,5 @@
 #!/bin/bash
-chmod +x "$0"
+# chmod +x "$0"
 
 # Prompt for user inputs
 read -p "Enter the name of the user to create: " USERNAME
