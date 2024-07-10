@@ -116,8 +116,13 @@ echo "$PASSWORD" | sudo -S chmod -R 777 $WWW_FOLDER
 # Navigate back to the WWW_FOLDER
 cd $WWW_FOLDER
 
-# Run the GitHub Actions runner configuration script
-./config.sh --url $REPO_URL --token $RUNNER_TOKEN
+# Print instructions for manual configuration
+echo "Starting GitHub Actions runner configuration. Please complete the configuration manually."
+echo "Run the following command and follow the prompts:"
+echo "./config.sh --url $REPO_URL --token $RUNNER_TOKEN"
+
+# Open an interactive shell for manual configuration
+bash
 
 EOF
 
