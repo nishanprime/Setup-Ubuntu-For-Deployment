@@ -88,19 +88,7 @@ echo "$USERNAME:$PASSWORD" | sudo chpasswd
 sudo usermod -aG sudo $USERNAME
 sudo usermod -aG docker $USERNAME
 
-# Create the expect script to automate sudo commands
-cat <<EOL > sudo_expect.sh
-#!/usr/bin/expect -f
-set timeout -1
-set password [lindex \$argv 0]
-spawn sudo -S su - \$env(USER)
-expect "password for"
-send "\$password\r"
-expect "#"
-send "cd /var/www && sudo mkdir -p \$env(WWW_FOLDER) && sudo chown -R \$env(USER) /var/www/\$env(WWW_FOLDER) && exit\r"
-expect eof
-EOL
-chmod +x sudo_expect.sh
+
 
 # Create the expect script to automate the GitHub Actions runner configuration
 cat <<EOL > config.expect
@@ -120,15 +108,36 @@ chmod +x config.expect
 # Switch to the new user and set up the GitHub Actions runner
 export USER=$USERNAME
 export WWW_FOLDER=$WWW_FOLDER
-./sudo_expect.sh $PASSWORD
 
+# Switch to the new user
 su - $USERNAME <<EOF
-cd /var/www/$WWW_FOLDER
-curl -o actions-runner-linux-x64-$RUNNER_VERSION.tar.gz -L https://github.com/actions/runner/releases/download/v$RUNNER_VERSION/actions-runner-linux-x64-$RUNNER_VERSION.tar.gz
-tar xzf ./actions-runner-linux-x64-$RUNNER_VERSION.tar.gz
-./config.expect
-sudo ./svc.sh install
-sudo ./svc.sh start
+cd /var/www
+# Create the WWW_FOLDER with sudo and pipe password
+echo "$PASSWORD" | sudo -S mkdir -p $WWW_FOLDER
+echo "$PASSWORD" | sudo -S chown -R $USERNAME:$USERNAME $WWW_FOLDER
+
+# Navigate to the created directory
+cd $WWW_FOLDER
+
+# Download the GitHub Actions runner with sudo
+echo "$PASSWORD" | sudo -S curl -o actions-runner-linux-x64-$RUNNER_VERSION.tar.gz -L https://github.com/actions/runner/releases/download/v$RUNNER_VERSION/actions-runner-linux-x64-$RUNNER_VERSION.tar.gz
+
+# Extract the runner package with sudo
+echo "$PASSWORD" | sudo -S tar xzf ./actions-runner-linux-x64-$RUNNER_VERSION.tar.gz
+
+# Change back to /var/www and set permissions
+cd ..
+echo "$PASSWORD" | sudo -S chmod -R 777 $WWW_FOLDER
+
+# Navigate back to the WWW_FOLDER
+cd $WWW_FOLDER
+
+# Run the GitHub Actions runner configuration without sudo
+./config.sh --url $REPO_URL --token $RUNNER_TOKEN
+
+# Install and start the runner service with sudo
+echo "$PASSWORD" | sudo -S ./svc.sh install
+echo "$PASSWORD" | sudo -S ./svc.sh start
 EOF
 
 echo "Setup complete. Please check your GitHub repository settings for the runner status."
