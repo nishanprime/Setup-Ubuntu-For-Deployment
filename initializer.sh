@@ -102,7 +102,7 @@ tar xzf ./actions-runner-linux-x64-$RUNNER_VERSION.tar.gz
 EOF
 
 # Instructions for the user to complete the setup manually
-cat <<EOL
+echo -e "
 ================================================================================
                    GitHub Actions Runner Configuration                          
 ================================================================================
@@ -134,10 +134,6 @@ You will be prompted to enter the password during the configuration process.
 --------------------------------------------------------------------------------
 
 ================================================================================
-EOL
-
-echo "Please complete the above steps manually and you're all set!"
-
-EOL
+"
 
 echo "Please complete the above steps manually and you're all set!"
