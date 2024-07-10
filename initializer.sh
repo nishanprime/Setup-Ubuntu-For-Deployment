@@ -117,12 +117,29 @@ echo "$PASSWORD" | sudo -S chmod -R 777 $WWW_FOLDER
 cd $WWW_FOLDER
 
 # Print instructions for manual configuration
-echo "Starting GitHub Actions runner configuration. Please complete the configuration manually."
-echo "Run the following command and follow the prompts:"
-echo "./config.sh --url $REPO_URL --token $RUNNER_TOKEN"
-echo "After that is complete, run the following script to install and start the runner service:"
-echo "sudo ./svc.sh install"
-echo "sudo ./svc.sh start"
+echo "================================================================================"
+echo "                   GitHub Actions Runner Configuration                          "
+echo "================================================================================"
+echo "Please complete the GitHub Actions runner configuration manually."
+echo ""
+echo "1. Run the following command to configure the runner:"
+echo "--------------------------------------------------------------------------------"
+echo "   su - $USERNAME -c './config.sh --url $REPO_URL --token $RUNNER_TOKEN'"
+echo "--------------------------------------------------------------------------------"
+echo ""
+echo "2. After completing the configuration, install and start the runner service:"
+echo "--------------------------------------------------------------------------------"
+echo "   su - $USERNAME -c \"echo '$PASSWORD' | sudo -S ./svc.sh install\""
+echo "   su - $USERNAME -c \"echo '$PASSWORD' | sudo -S ./svc.sh start\""
+echo "--------------------------------------------------------------------------------"
+echo "================================================================================"
+echo ""
+echo "Press any key to open a shell for manual configuration..."
+read -n 1 -s
+
+# Open an interactive shell for manual configuration
+su - $USERNAME -c "bash"
+
 
 EOF
 
