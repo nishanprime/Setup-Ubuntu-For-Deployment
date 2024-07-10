@@ -109,28 +109,35 @@ cat <<EOL
 
 Please complete the GitHub Actions runner configuration manually.
 
+Note: Your password is: $PASSWORD for the user: $USERNAME
+You will be prompted to enter the password during the configuration process.
+
 1. Switch to the user:
 --------------------------------------------------------------------------------
-   su - $USERNAME
+\033[31m   su - $USERNAME \033[0m
 --------------------------------------------------------------------------------
 
 2. Navigate to the correct directory:
 --------------------------------------------------------------------------------
-   cd /var/www/$WWW_FOLDER
+\033[31m   cd /var/www/$WWW_FOLDER \033[0m
 --------------------------------------------------------------------------------
 
 3. Run the following command to configure the runner:
 --------------------------------------------------------------------------------
-   ./config.sh --url $REPO_URL --token $RUNNER_TOKEN
+\033[31m   ./config.sh --url $REPO_URL --token $RUNNER_TOKEN \033[0m
 --------------------------------------------------------------------------------
 
 4. After completing the configuration, install and start the runner service:
 --------------------------------------------------------------------------------
-   sudo ./svc.sh install
-   sudo ./svc.sh start
+\033[31m   sudo ./svc.sh install \033[0m
+\033[31m   sudo ./svc.sh start \033[0m
 --------------------------------------------------------------------------------
 
 ================================================================================
+EOL
+
+echo "Please complete the above steps manually and you're all set!"
+
 EOL
 
 echo "Please complete the above steps manually and you're all set!"
