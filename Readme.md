@@ -36,6 +36,5 @@ Once the script has completed, check your GitHub repository settings to verify t
 ## Note
 
 Ensure you have sudo privileges to run this script, as it will require root access to install software and configure the system.
-```
+
 This project is licensed under the MIT License - see the [License.md](License.md) file for details.
-```
