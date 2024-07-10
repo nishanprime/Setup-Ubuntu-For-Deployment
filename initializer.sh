@@ -122,25 +122,31 @@ echo "                   GitHub Actions Runner Configuration                    
 echo "================================================================================"
 echo "Please complete the GitHub Actions runner configuration manually."
 echo ""
-echo "1. Run the following command to configure the runner:"
+echo "1. Switch to the user:"
 echo "--------------------------------------------------------------------------------"
-echo "   su - $USERNAME -c './config.sh --url $REPO_URL --token $RUNNER_TOKEN'"
+echo "   su - $USERNAME"
 echo "--------------------------------------------------------------------------------"
 echo ""
-echo "2. After completing the configuration, install and start the runner service:"
+echo "2. Navigate to the correct directory:"
 echo "--------------------------------------------------------------------------------"
-echo "   su - $USERNAME -c \"echo '$PASSWORD' | sudo -S ./svc.sh install\""
-echo "   su - $USERNAME -c \"echo '$PASSWORD' | sudo -S ./svc.sh start\""
+echo "   cd /var/www/$WWW_FOLDER"
+echo "--------------------------------------------------------------------------------"
+echo ""
+echo "3. Run the following command to configure the runner:"
+echo "--------------------------------------------------------------------------------"
+echo "   ./config.sh --url $REPO_URL --token $RUNNER_TOKEN"
+echo "--------------------------------------------------------------------------------"
+echo ""
+echo "4. After completing the configuration, install and start the runner service:"
+echo "--------------------------------------------------------------------------------"
+echo "   echo '$PASSWORD' | sudo -S ./svc.sh install"
+echo "   echo '$PASSWORD' | sudo -S ./svc.sh start"
 echo "--------------------------------------------------------------------------------"
 echo "================================================================================"
 echo ""
 echo "Press any key to open a shell for manual configuration..."
-read -n 1 -s
-
-# Open an interactive shell for manual configuration
-su - $USERNAME -c "bash"
 
 
 EOF
 
-echo "Setup complete. Please check your GitHub repository settings for the runner status."
+echo "Please complete the above steps manually and you're all set!"
