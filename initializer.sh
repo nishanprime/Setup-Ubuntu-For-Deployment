@@ -23,20 +23,37 @@ WWW_FOLDER=${WWW_FOLDER:-mywebsite}
 
 while [ -z "$REPO_URL" ]; do
     read -p "Enter the GitHub repository URL: " REPO_URL
+    if [[ ! "$REPO_URL" =~ ^ ]]; then
+        echo "Invalid URL. Please try again."
+        REPO_URL=""
+    fi
 done
 
 while [ -z "$RUNNER_TOKEN" ]; do
     read -p "Enter the GitHub Actions runner token: " RUNNER_TOKEN
+    if [[ ! "$RUNNER_TOKEN" =~ ^[0-9a-zA-Z]+$ ]]; then
+        echo "Invalid token. Please try again."
+        RUNNER_TOKEN=""
+    fi
 done
 
 read -p "Enter the GitHub Actions runner version (default: 2.317.0): " RUNNER_VERSION
 RUNNER_VERSION=${RUNNER_VERSION:-2.317.0}
 
-read -p "Enter the GitHub Actions runner name (default: auto-generated): " RUNNER_NAME
-RUNNER_NAME=${RUNNER_NAME:-$(hostname)}
+read -p "Enter the name of the runner group to add this runner to (default: maingroup): " RUNNER_GROUP
+RUNNER_GROUP=${RUNNER_GROUP:-maingroup}
 
-read -p "Enter the GitHub Actions runner labels (comma-separated, default: none): " RUNNER_LABELS
-RUNNER_LABELS=${RUNNER_LABELS:-none}
+
+while [ -z "$RUNNER_NAME" ]; do
+    read -p "Enter the GitHub Actions runner name (for example, my-runner): " RUNNER_NAME
+    if [[ ! "$RUNNER_NAME" =~ ^ ]]; then
+        echo "Invalid name. Please try again."
+        RUNNER_NAME=""
+    fi
+done
+
+read -p "Enter the GitHub Actions runner labels (comma-separated, default: self-hosted): " RUNNER_LABELS
+RUNNER_LABELS=${RUNNER_LABELS:-self-hosted}
 echo
 
 # Update package lists
@@ -136,8 +153,8 @@ cd $WWW_FOLDER
 ./config.sh --url $REPO_URL --token $RUNNER_TOKEN
 
 # Install and start the runner service with sudo
-echo "$PASSWORD" | sudo -S ./svc.sh install
-echo "$PASSWORD" | sudo -S ./svc.sh start
+sudo -S ./svc.sh install
+sudo -S ./svc.sh start
 EOF
 
 echo "Setup complete. Please check your GitHub repository settings for the runner status."
