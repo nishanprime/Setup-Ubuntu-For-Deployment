@@ -89,64 +89,48 @@ echo "$USERNAME:$PASSWORD" | sudo chpasswd
 sudo usermod -aG sudo $USERNAME
 sudo usermod -aG docker $USERNAME
 
-# Switch to the new user and set up the GitHub Actions runner
-export USER=$USERNAME
-export WWW_FOLDER=$WWW_FOLDER
+# Create necessary directories and set permissions
+sudo mkdir -p /var/www/$WWW_FOLDER
+sudo chown -R $USERNAME:$USERNAME /var/www/$WWW_FOLDER
+sudo chmod -R 777 /var/www/$WWW_FOLDER
 
-# Switch to the new user
-su - $USERNAME <<EOF
-cd /var/www
-# Create the WWW_FOLDER with sudo and pipe password
-echo "$PASSWORD" | sudo -S mkdir -p $WWW_FOLDER
-echo "$PASSWORD" | sudo -S chown -R $USERNAME:$USERNAME $WWW_FOLDER
-
-# Navigate to the created directory
-cd $WWW_FOLDER
-
-# Download the GitHub Actions runner with sudo
-echo "$PASSWORD" | sudo -S curl -o actions-runner-linux-x64-$RUNNER_VERSION.tar.gz -L https://github.com/actions/runner/releases/download/v$RUNNER_VERSION/actions-runner-linux-x64-$RUNNER_VERSION.tar.gz
-
-# Extract the runner package with sudo
-echo "$PASSWORD" | sudo -S tar xzf ./actions-runner-linux-x64-$RUNNER_VERSION.tar.gz
-
-# Change back to /var/www and set permissions
-cd ..
-echo "$PASSWORD" | sudo -S chmod -R 777 $WWW_FOLDER
-
-# Navigate back to the WWW_FOLDER
-cd $WWW_FOLDER
-
-# Print instructions for manual configuration
-echo "================================================================================"
-echo "                   GitHub Actions Runner Configuration                          "
-echo "================================================================================"
-echo "Please complete the GitHub Actions runner configuration manually."
-echo ""
-echo "1. Switch to the user:"
-echo "--------------------------------------------------------------------------------"
-echo "   su - $USERNAME"
-echo "--------------------------------------------------------------------------------"
-echo ""
-echo "2. Navigate to the correct directory:"
-echo "--------------------------------------------------------------------------------"
-echo "   cd /var/www/$WWW_FOLDER"
-echo "--------------------------------------------------------------------------------"
-echo ""
-echo "3. Run the following command to configure the runner:"
-echo "--------------------------------------------------------------------------------"
-echo "   ./config.sh --url $REPO_URL --token $RUNNER_TOKEN"
-echo "--------------------------------------------------------------------------------"
-echo ""
-echo "4. After completing the configuration, install and start the runner service:"
-echo "--------------------------------------------------------------------------------"
-echo "   echo '$PASSWORD' | sudo -S ./svc.sh install"
-echo "   echo '$PASSWORD' | sudo -S ./svc.sh start"
-echo "--------------------------------------------------------------------------------"
-echo "================================================================================"
-echo ""
-echo "Press any key to open a shell for manual configuration..."
-
-
+# Download and extract the GitHub Actions runner
+sudo -u $USERNAME bash <<EOF
+cd /var/www/$WWW_FOLDER
+curl -o actions-runner-linux-x64-$RUNNER_VERSION.tar.gz -L https://github.com/actions/runner/releases/download/v$RUNNER_VERSION/actions-runner-linux-x64-$RUNNER_VERSION.tar.gz
+tar xzf ./actions-runner-linux-x64-$RUNNER_VERSION.tar.gz
 EOF
+
+# Instructions for the user to complete the setup manually
+cat <<EOL
+================================================================================
+                   GitHub Actions Runner Configuration                          
+================================================================================
+
+Please complete the GitHub Actions runner configuration manually.
+
+1. Switch to the user:
+--------------------------------------------------------------------------------
+   su - $USERNAME
+--------------------------------------------------------------------------------
+
+2. Navigate to the correct directory:
+--------------------------------------------------------------------------------
+   cd /var/www/$WWW_FOLDER
+--------------------------------------------------------------------------------
+
+3. Run the following command to configure the runner:
+--------------------------------------------------------------------------------
+   ./config.sh --url $REPO_URL --token $RUNNER_TOKEN
+--------------------------------------------------------------------------------
+
+4. After completing the configuration, install and start the runner service:
+--------------------------------------------------------------------------------
+   sudo ./svc.sh install
+   sudo ./svc.sh start
+--------------------------------------------------------------------------------
+
+================================================================================
+EOL
 
 echo "Please complete the above steps manually and you're all set!"
