@@ -120,22 +120,9 @@ cd $WWW_FOLDER
 echo "Starting GitHub Actions runner configuration. Please complete the configuration manually."
 echo "Run the following command and follow the prompts:"
 echo "./config.sh --url $REPO_URL --token $RUNNER_TOKEN"
-
-# Open an interactive shell for manual configuration
-bash
-
-EOF
-
-# Wait for user input to confirm manual configuration completion
-read -p "Press any key to continue after configuring the runner manually..."
-
-# Switch to the new user again to start the service
-su - $USERNAME <<EOF
-cd /var/www/$WWW_FOLDER
-
-# Install and start the runner service with sudo
-sudo -S ./svc.sh install
-sudo -S ./svc.sh start
+echo "After that is complete, run the following script to install and start the runner service:"
+echo "sudo ./svc.sh install"
+echo "sudo ./svc.sh start"
 
 EOF
 
