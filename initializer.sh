@@ -40,22 +40,6 @@ done
 read -p "Enter the GitHub Actions runner version (default: 2.317.0): " RUNNER_VERSION
 RUNNER_VERSION=${RUNNER_VERSION:-2.317.0}
 
-read -p "Enter the name of the runner group to add this runner to (default: maingroup): " RUNNER_GROUP
-RUNNER_GROUP=${RUNNER_GROUP:-maingroup}
-
-
-while [ -z "$RUNNER_NAME" ]; do
-    read -p "Enter the GitHub Actions runner name (for example, my-runner): " RUNNER_NAME
-    if [[ ! "$RUNNER_NAME" =~ ^ ]]; then
-        echo "Invalid name. Please try again."
-        RUNNER_NAME=""
-    fi
-done
-
-read -p "Enter the GitHub Actions runner labels (comma-separated, default: self-hosted): " RUNNER_LABELS
-RUNNER_LABELS=${RUNNER_LABELS:-self-hosted}
-echo
-
 # Update package lists
 sudo apt update
 
@@ -105,23 +89,6 @@ echo "$USERNAME:$PASSWORD" | sudo chpasswd
 sudo usermod -aG sudo $USERNAME
 sudo usermod -aG docker $USERNAME
 
-
-
-# Create the expect script to automate the GitHub Actions runner configuration
-cat <<EOL > config.expect
-#!/usr/bin/expect -f
-set timeout -1
-spawn ./config.sh --url $REPO_URL --token $RUNNER_TOKEN
-expect "Enter name of runner: "
-send "$RUNNER_NAME\r"
-expect "Enter any additional labels (ex. label-1,label-2):"
-send "$RUNNER_LABELS\r"
-expect "Enter name of work folder:"
-send "default\r"
-expect eof
-EOL
-chmod +x config.expect
-
 # Switch to the new user and set up the GitHub Actions runner
 export USER=$USERNAME
 export WWW_FOLDER=$WWW_FOLDER
@@ -149,8 +116,11 @@ echo "$PASSWORD" | sudo -S chmod -R 777 $WWW_FOLDER
 # Navigate back to the WWW_FOLDER
 cd $WWW_FOLDER
 
-# Run the GitHub Actions runner configuration without sudo
+# Run the GitHub Actions runner configuration script
 ./config.sh --url $REPO_URL --token $RUNNER_TOKEN
+
+# Wait for user input to confirm manual configuration completion
+read -p "Press any key to continue after configuring the runner manually..."
 
 # Install and start the runner service with sudo
 sudo -S ./svc.sh install
