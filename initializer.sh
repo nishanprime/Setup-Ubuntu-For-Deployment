@@ -5,14 +5,38 @@
 read -p "Enter the name of the user to create: " USERNAME
 read -s -p "Enter the password for the user: " PASSWORD
 echo
-read -p "Enter the Node version to install (e.g., 20.11.1): " NODE_VERSION
-read -p "Enter the folder name inside /var/www: " WWW_FOLDER
-read -p "Enter the GitHub repository URL: " REPO_URL
-read -p "Enter the GitHub Actions runner token: " RUNNER_TOKEN
-read -p "Enter the GitHub Actions runner version (e.g., 2.308.0): " RUNNER_VERSION
-read -p "Enter the GitHub Actions runner name: " RUNNER_NAME
-read -p "Enter the GitHub Actions runner labels (comma-separated): " RUNNER_LABELS
-read -s -p "Enter the sudo password for the new user: " SUDO_PASSWORD
+read -s -p "Confirm the password: " PASSWORD_CONFIRM
+while [ "$PASSWORD" != "$PASSWORD_CONFIRM" ]; do
+    echo
+    echo "Passwords do not match. Please try again."
+    read -s -p "Enter the password for the user: " PASSWORD
+    read -s -p "Confirm the password: " PASSWORD_CONFIRM
+done
+echo
+
+# Set default values if not provided
+read -p "Enter the Node version to install (default: 20.11.1): " NODE_VERSION
+NODE_VERSION=${NODE_VERSION:-20.11.1}
+
+read -p "Enter the folder name inside /var/www (default: mywebsite): " WWW_FOLDER
+WWW_FOLDER=${WWW_FOLDER:-mywebsite}
+
+while [ -z "$REPO_URL" ]; do
+    read -p "Enter the GitHub repository URL: " REPO_URL
+done
+
+while [ -z "$RUNNER_TOKEN" ]; do
+    read -p "Enter the GitHub Actions runner token: " RUNNER_TOKEN
+done
+
+read -p "Enter the GitHub Actions runner version (default: 2.317.0): " RUNNER_VERSION
+RUNNER_VERSION=${RUNNER_VERSION:-2.317.0}
+
+read -p "Enter the GitHub Actions runner name (default: auto-generated): " RUNNER_NAME
+RUNNER_NAME=${RUNNER_NAME:-$(hostname)}
+
+read -p "Enter the GitHub Actions runner labels (comma-separated, default: none): " RUNNER_LABELS
+RUNNER_LABELS=${RUNNER_LABELS:-none}
 echo
 
 # Update package lists
@@ -58,21 +82,25 @@ docker --version
 echo "--- Docker Compose Version ---"
 docker-compose --version
 
-# Create a new user and add to necessary groups
-sudo adduser --gecos "" $USERNAME
+# Create a new user and set the password
+sudo adduser --disabled-password --gecos "" $USERNAME
 echo "$USERNAME:$PASSWORD" | sudo chpasswd
 sudo usermod -aG sudo $USERNAME
 sudo usermod -aG docker $USERNAME
 
-# Function to handle sudo with expect
-expect_sudo() {
-    expect -c "
-    spawn $1
-    expect \"password for\"
-    send \"$SUDO_PASSWORD\r\"
-    interact
-    "
-}
+# Create the expect script to automate sudo commands
+cat <<EOL > sudo_expect.sh
+#!/usr/bin/expect -f
+set timeout -1
+set password [lindex \$argv 0]
+spawn sudo -S su - \$env(USER)
+expect "password for"
+send "\$password\r"
+expect "#"
+send "cd /var/www && sudo mkdir -p \$env(WWW_FOLDER) && sudo chown -R \$env(USER) /var/www/\$env(WWW_FOLDER) && exit\r"
+expect eof
+EOL
+chmod +x sudo_expect.sh
 
 # Create the expect script to automate the GitHub Actions runner configuration
 cat <<EOL > config.expect
@@ -90,18 +118,17 @@ EOL
 chmod +x config.expect
 
 # Switch to the new user and set up the GitHub Actions runner
+export USER=$USERNAME
+export WWW_FOLDER=$WWW_FOLDER
+./sudo_expect.sh $PASSWORD
+
 su - $USERNAME <<EOF
-cd /var/www
-mkdir -p $WWW_FOLDER
-cd $WWW_FOLDER
-sudo curl -o actions-runner-linux-x64-$RUNNER_VERSION.tar.gz -L https://github.com/actions/runner/releases/download/v$RUNNER_VERSION/actions-runner-linux-x64-$RUNNER_VERSION.tar.gz
-sudo tar xzf ./actions-runner-linux-x64-$RUNNER_VERSION.tar.gz
-cd ..
-sudo chmod -R 777 /var/www/$WWW_FOLDER
 cd /var/www/$WWW_FOLDER
-../config.expect
-$(expect_sudo "sudo ./svc.sh install")
-$(expect_sudo "sudo ./svc.sh start")
+curl -o actions-runner-linux-x64-$RUNNER_VERSION.tar.gz -L https://github.com/actions/runner/releases/download/v$RUNNER_VERSION/actions-runner-linux-x64-$RUNNER_VERSION.tar.gz
+tar xzf ./actions-runner-linux-x64-$RUNNER_VERSION.tar.gz
+./config.expect
+sudo ./svc.sh install
+sudo ./svc.sh start
 EOF
 
 echo "Setup complete. Please check your GitHub repository settings for the runner status."
