@@ -109,7 +109,7 @@ echo -e "
 
 Please complete the GitHub Actions runner configuration manually.
 
-Note: Your password is: $PASSWORD for the user: $USERNAME
+Note:  \033[31m Your password is:  $PASSWORD  for the user: $USERNAME \033[0m
 You will be prompted to enter the password during the configuration process.
 
 1. Switch to the user:
